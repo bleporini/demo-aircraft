@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  tracking:
+    image: maven:3.8.6-openjdk-18
+    volumes:
+      - $HOME/.m2:/root/.m2
+      - .:/work
+      - $CONFIG_DIR:/work/src/main/resources
+    working_dir: /work
+    command: 'mvn exec:java -Dexec.mainClass="io.confluent.demo.aircraft.jsonschema.producer.TrackingService" -Dexec.args="./src/main/resources ccloud.properties opensky.properties tracking.aviation.aircraft.json TrackingService.json"'
+  router:
+    image: maven:3.8.6-openjdk-18
+    volumes:
+      - $HOME/.m2:/root/.m2
+      - .:/work
+      - $CONFIG_DIR:/work/src/main/resources
+    working_dir: /work
+    command: 'mvn exec:java -Dexec.mainClass="io.confluent.demo.aircraft.jsonschema.kstreams.RouterKStreamsService" -Dexec.args="./src/main/resources ccloud.properties RouterService.json tracking.aviation.aircraft.json tracking.aviation.aircraft_onground.json tracking.aviation.aircraft_inflight.json tracking.aviation.aircraft_unidentified.json Kstreams.json.client.1"'
+  onground:
+    image: maven:3.8.6-openjdk-18
+    volumes:
+      - $HOME/.m2:/root/.m2
+      - .:/work
+      - $CONFIG_DIR:/work/src/main/resources
+    working_dir: /work
+    command: 'mvn exec:java -Dexec.mainClass="io.confluent.demo.aircraft.jsonschema.consumer.GenericJsonConsumerService" -Dexec.args="./src/main/resources ccloud.properties tracking.aviation.aircraft_onground.json OnGroundService.json OnGroundConsumer.json.client.1"'
+  inflight:
+    image: maven:3.8.6-openjdk-18
+    volumes:
+      - $HOME/.m2:/root/.m2
+      - .:/work
+      - $CONFIG_DIR:/work/src/main/resources
+    working_dir: /work
+    command: 'mvn exec:java -Dexec.mainClass="io.confluent.demo.aircraft.jsonschema.consumer.GenericJsonConsumerService" -Dexec.args="./src/main/resources ccloud.properties tracking.aviation.aircraft_inflight.json InFlightService.json InFlightConsumer.json.client.1"'
+  unidentified:
+    image: maven:3.8.6-openjdk-18
+    volumes:
+      - $HOME/.m2:/root/.m2
+      - .:/work
+      - $CONFIG_DIR:/work/src/main/resources
+    working_dir: /work
+    command: 'mvn exec:java -Dexec.mainClass="io.confluent.demo.aircraft.jsonschema.consumer.GenericJsonConsumerService" -Dexec.args="./src/main/resources ccloud.properties tracking.aviation.aircraft_unidentified.json UnidentifiedService.json UnidentifiedConsumer.json.client.1"'
